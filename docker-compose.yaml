@@ -1,0 +1,16 @@
+services:
+  matter-electrical-metrics:
+    build: .
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail http://localhost:8000/healthcheck || exit 1"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+    environment:
+      MATTER_WS_URL: ws://192.168.1.7:5580/ws
+      PROMETHEUS_EXPORTER_PORT: 8000
+      LOG_LEVEL: DEBUG
+    ports:
+      - "8000:8000"
+    command: ["python", "/app/src/matter_prometheus_exporter.py"]

@@ -1,0 +1,8 @@
+# Core dependencies
+aiohttp>=3.8.0
+prometheus_client>=0.16.0
+
+python-matter-server
+
+# Optional: For better async performance
+uvloop>=0.17.0; sys_platform != "win32"
