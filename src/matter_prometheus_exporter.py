@@ -87,6 +87,12 @@ class MatterPrometheusExporter:
             ["unique_id", "node_label"],
         )
 
+        self.available_gauge = Gauge(
+            "matter_node_available",
+            "Node availability status (1=available, 0=unavailable)",
+            ["unique_id"],
+        )
+
     async def update_metrics(self):
         """Matterデータを取得してPrometheusメトリクスを更新"""
         try:
@@ -106,7 +112,7 @@ class MatterPrometheusExporter:
             self.rms_voltage_gauge.clear()
             self.rms_current_gauge.clear()
             self.node_label_gauge.clear()
-
+            self.available_gauge.clear()
             # 取得したデータでメトリクスを更新
             for metric in metrics_data:
                 unique_id = (
@@ -129,6 +135,10 @@ class MatterPrometheusExporter:
                     self.node_label_gauge.labels(
                         unique_id=unique_id, node_label=node_label
                     ).set(1)
+                if metric.available is not None:
+                    self.available_gauge.labels(unique_id=unique_id).set(
+                        1 if metric.available else 0
+                    )
             self.logger.debug(f"{len(metrics_data)}個のメトリクスを更新しました")
 
         except Exception as e:
@@ -137,16 +147,18 @@ class MatterPrometheusExporter:
     async def handle_metrics(self, request):
         """Prometheusメトリクスエンドポイント（オンデマンド取得）"""
         # クライアントIPアドレスを取得
-        client_ip = request.headers.get('X-Forwarded-For') or request.remote
-        
+        client_ip = request.headers.get("X-Forwarded-For") or request.remote
+
         try:
             # Matter接続状態をチェック
             if self.matter_client is None:
-                self.logger.info(f"Prometheusメトリクスアクセス: {client_ip} (Matter Server未接続)")
+                self.logger.info(
+                    f"Prometheusメトリクスアクセス: {client_ip} (Matter Server未接続)"
+                )
                 return web.Response(
                     status=503,
                     text="# Matter Server not connected\n",
-                    content_type="text/plain"
+                    content_type="text/plain",
                 )
 
             # リアルタイムでメトリクスを更新
@@ -172,11 +184,11 @@ class MatterPrometheusExporter:
         # Exporter自体は常にhealthy（Webサーバーが応答している限り）
         return web.json_response(
             {
-                "status": "healthy", 
+                "status": "healthy",
                 "matter_connected": is_matter_connected,
-                "reconnect_interval": self.reconnect_interval
-            }, 
-            status=200  # 常に200を返す
+                "reconnect_interval": self.reconnect_interval,
+            },
+            status=200,  # 常に200を返す
         )
 
     async def manage_matter_connection(self):
@@ -184,7 +196,7 @@ class MatterPrometheusExporter:
         while not self._shutdown_event.is_set():
             try:
                 self.logger.info("Matter Serverへの接続を試行中...")
-                
+
                 # 既存の接続があれば切断
                 if self.matter_client:
                     try:
@@ -192,24 +204,24 @@ class MatterPrometheusExporter:
                     except Exception:
                         pass
                     self.matter_client = None
-                
+
                 # 新しい接続を作成
                 matter_client = MatterElectricalMetrics(
                     ws_server_url=self.matter_ws_url,
                     logger=self.logger.getChild("matter"),
                 )
-                
+
                 await matter_client.connect()
                 self.matter_client = matter_client
                 self.logger.info("Matter Serverに接続完了")
-                
+
                 # 接続が維持されている間は待機
                 while not self._shutdown_event.is_set():
                     try:
                         # 接続確認
                         if (
-                            hasattr(self.matter_client, '_connected') and 
-                            self.matter_client._connected
+                            hasattr(self.matter_client, "_connected")
+                            and self.matter_client._connected
                         ):
                             await asyncio.sleep(self.reconnect_interval)
                         else:
@@ -218,19 +230,20 @@ class MatterPrometheusExporter:
                     except Exception as e:
                         self.logger.error(f"Matter Server接続確認エラー: {e}")
                         break
-                        
+
             except asyncio.CancelledError:
                 break
             except Exception as e:
                 self.logger.warning(f"Matter Server接続失敗: {e}")
                 self.matter_client = None
-                
+
                 # 再接続待機
-                self.logger.info(f"{self.reconnect_interval}秒後に再接続を試行します...")
+                self.logger.info(
+                    f"{self.reconnect_interval}秒後に再接続を試行します..."
+                )
                 try:
                     await asyncio.wait_for(
-                        self._shutdown_event.wait(),
-                        timeout=self.reconnect_interval
+                        self._shutdown_event.wait(), timeout=self.reconnect_interval
                     )
                     break  # シャットダウンイベントが発生
                 except asyncio.TimeoutError:
@@ -261,18 +274,18 @@ class MatterPrometheusExporter:
 
             # Matter クライアント接続管理タスクを開始
             connection_task = asyncio.create_task(self.manage_matter_connection())
-            
+
             # シャットダウンイベントを待機（オンデマンド方式）
             self.logger.info("オンデマンドメトリクスモードで動作中...")
             await self._shutdown_event.wait()
-            
+
             # 接続管理タスクをキャンセル
             connection_task.cancel()
             try:
                 await connection_task
             except asyncio.CancelledError:
                 pass
-                
+
         except Exception as e:
             self.logger.error(f"予期しないエラー: {e}")
             raise

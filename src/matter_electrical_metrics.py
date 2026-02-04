@@ -10,7 +10,7 @@ from chip.clusters import Objects as Clusters
 
 
 @dataclass
-class ElectricalMetrics:
+class ElectricalNodeMetrics:
     node_id: int
     endpoint_id: int
     unique_id: str | None = None  # ユニークID（文字列）
@@ -19,6 +19,7 @@ class ElectricalMetrics:
     active_power_w: float | None = None  # 電力（W）
     rms_voltage_v: float | None = None  # 有効電圧（V）
     rms_current_a: float | None = None  # 有効電流（A）
+    available: bool = True  # ノードが利用可能かどうか。電源OFFなどで利用不可の場合False
 
 
 class MatterElectricalMetrics:
@@ -219,76 +220,13 @@ class MatterElectricalMetrics:
 
         return basic_info
 
-    async def get_electrical_metrics(self) -> dict[int, dict[str, float]] | None:
-        """
-        電力メトリクスを取得
-        """
-
-        self._ensure_connected()
-        electrical_metrics = {}
-
-        try:
-            nodes: list[MatterNode] = await self._client.get_nodes()
-            self._logger.debug(f"取得したノード数: {len(nodes)}")
-        except TypeError:
-            nodes = self._client.get_nodes()
-            self._logger.debug(f"同期的にノードを取得: {len(nodes)}")
-        except Exception as e:
-            self._logger.error(f"ノード取得エラー: {e}")
-            return None
-
-        for node in nodes:
-            if not node.has_cluster(Clusters.ElectricalPowerMeasurement):
-                self._logger.debug(
-                    f"ノード {node.node_id}: ElectricalPowerMeasurementクラスターなし"
-                )
-                continue
-
-            self._logger.debug(
-                f"ノード {node.node_id}: ElectricalPowerMeasurementクラスター検出"
-            )
-            for endpoint_id, endpoint in node.endpoints.items():
-                if not endpoint.has_cluster(Clusters.ElectricalPowerMeasurement):
-                    continue
-
-                self._logger.debug(
-                    f"ノード {node.node_id}, エンドポイント {endpoint_id}: メトリクス取得中"
-                )
-                metrics = {}
-
-                active_power = endpoint.get_attribute_value(
-                    Clusters.ElectricalPowerMeasurement,
-                    Clusters.ElectricalPowerMeasurement.Attributes.ActivePower,
-                )
-                if active_power is not None:
-                    metrics["active_power_mw"] = active_power
-
-                rms_voltage = endpoint.get_attribute_value(
-                    Clusters.ElectricalPowerMeasurement,
-                    Clusters.ElectricalPowerMeasurement.Attributes.RMSVoltage,
-                )
-                if rms_voltage is not None:
-                    metrics["rms_voltage_mv"] = rms_voltage
-
-                rms_current = endpoint.get_attribute_value(
-                    Clusters.ElectricalPowerMeasurement,
-                    Clusters.ElectricalPowerMeasurement.Attributes.RMSCurrent,
-                )
-                if rms_current is not None:
-                    metrics["rms_current_ma"] = rms_current
-
-                if metrics:
-                    electrical_metrics[node.node_id] = metrics
-
-        return electrical_metrics
-
-    async def get_metrics_with_electrical(self) -> list[ElectricalMetrics] | None:
+    async def get_metrics_with_electrical(self) -> list[ElectricalNodeMetrics] | None:
         """
         電力メトリクスと基本情報を組み合わせて取得
         """
 
         self._ensure_connected()
-        metrics_with_electrical: list[ElectricalMetrics] = []
+        metrics_with_electrical: list[ElectricalNodeMetrics] = []
 
         try:
             nodes: list[MatterNode] = await self._client.get_nodes()
@@ -333,6 +271,22 @@ class MatterElectricalMetrics:
                     )
                 break  # Basic Informationは1つのエンドポイントにしかないと仮定
 
+            # 電源OFFなどでノードが利用不可の場合、各値取得はスキップ
+            if not node.available:
+                self._logger.debug(f"ノード {node.node_id}: 利用不可")
+                em = ElectricalNodeMetrics(
+                    node_id=node_id,
+                    unique_id=unique_id,
+                    serial_number=serial_number,
+                    node_label=node_label,
+                    endpoint_id=endpoint_id,
+                    available=False,
+                )
+                metrics_with_electrical.append(em)
+                continue
+
+            self._logger.debug(f"ノード {node.node_id}: 利用可能")
+
             for endpoint_id, endpoint in node.endpoints.items():
                 if not endpoint.has_cluster(Clusters.ElectricalPowerMeasurement):
                     continue
@@ -359,7 +313,7 @@ class MatterElectricalMetrics:
                     rms_current_ma / 1000.0 if rms_current_ma is not None else None
                 )
 
-                em = ElectricalMetrics(
+                em = ElectricalNodeMetrics(
                     node_id=node_id,
                     unique_id=unique_id,
                     serial_number=serial_number,
@@ -368,6 +322,7 @@ class MatterElectricalMetrics:
                     active_power_w=active_power_w,
                     rms_voltage_v=rms_voltage_v,
                     rms_current_a=rms_current_a,
+                    available=True,
                 )
                 metrics_with_electrical.append(em)
 
@@ -390,9 +345,6 @@ if __name__ == "__main__":
             # 10回試行、各試行ごとに1秒待機
             for i in range(10):
                 print(f"試行 {i+1}/10")
-                # metrics = await mem.get_electrical_metrics()
-                # for node_id, data in metrics.items():
-                #     print(f"Node ID: {node_id}, Metrics: {data}")
 
                 metrics = await mem.get_metrics_with_electrical()
                 for em in metrics:
