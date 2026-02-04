@@ -9,9 +9,13 @@ services:
       timeout: 10s
       retries: 3
     environment:
-      MATTER_WS_URL: ${MATTER_WS_URL:-"ws://localhost:5580/ws"}
+      MATTER_WS_URL: ${MATTER_WS_URL:-ws://host.docker.internal:5580/ws}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       MATTER_RECONNECT_INTERVAL: ${MATTER_RECONNECT_INTERVAL:-10}
     ports:
       - "${PROMETHEUS_EXPORTER_PORT:-8000}:8000"
     command: ["python", "/app/src/matter_prometheus_exporter.py"]
+    
+    # コンテナからホストにアクセスするための設定
+    extra_hosts:
+      - host.docker.internal:host-gateway
