@@ -1,6 +1,6 @@
 # Matter Prometheus Exporter
 
-Matterデバイスからデータを取得し、Prometheus形式でメトリクスを公開するエクスポーター。
+python-matter-serverからデータを取得し、Prometheus形式でメトリクスを公開するエクスポーター。
 
 ## 概要
 
