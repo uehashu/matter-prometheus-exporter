@@ -1,5 +1,5 @@
 services:
-  matter-electrical-metrics:
+  matter-prometheus-exporter:
     build: .
     restart: unless-stopped
     healthcheck:
@@ -14,7 +14,7 @@ services:
       MATTER_RECONNECT_INTERVAL: ${MATTER_RECONNECT_INTERVAL:-10}
     ports:
       - "${PROMETHEUS_EXPORTER_PORT:-8000}:8000"
-    
+
     # コンテナからホストにアクセスするための設定
     extra_hosts:
       - host.docker.internal:host-gateway

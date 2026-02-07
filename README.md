@@ -46,6 +46,32 @@ vim .env
 docker-compose up -d
 ```
 
+### Docker Compose
+
+```yaml
+services:
+  matter-prometheus-exporter:
+    image: ghcr.io/uehashu/matter-prometheus-exporter:latest
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail http://localhost:8000/health || exit 1"]
+      start_period: 10s
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    environment:
+      MATTER_WS_URL: ws://host.docker.internal:5580/ws
+      LOG_LEVEL: INFO
+      MATTER_RECONNECT_INTERVAL: 10
+    ports:
+      - "${PROMETHEUS_EXPORTER_PORT:-8000}:8000"
+    command: ["python", "/app/src/matter_prometheus_exporter.py"]
+
+    # コンテナからホストにアクセスするための設定
+    extra_hosts:
+      - host.docker.internal:host-gateway
+```
+
 ### Pythonで直接実行
 
 ```bash
@@ -54,6 +80,8 @@ pip install -r requirements.txt
 
 # 環境変数を設定
 export MATTER_WS_URL="ws://localhost:5580/ws"
+export LOG_LEVEL="INFO"
+export MATTER_RECONNECT_INTERVAL="10"
 
 # 実行
 python3 src/matter_prometheus_exporter.py
