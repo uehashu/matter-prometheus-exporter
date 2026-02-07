@@ -14,7 +14,6 @@ services:
       MATTER_RECONNECT_INTERVAL: ${MATTER_RECONNECT_INTERVAL:-10}
     ports:
       - "${PROMETHEUS_EXPORTER_PORT:-8000}:8000"
-    command: ["python", "/app/src/matter_prometheus_exporter.py"]
     
     # コンテナからホストにアクセスするための設定
     extra_hosts:

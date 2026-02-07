@@ -19,4 +19,4 @@ ENV LOG_LEVEL=INFO
 
 EXPOSE 8000
 
-CMD ["python", "src/matter_prometheus_exporter.py"]
+ENTRYPOINT ["python", "src/matter_prometheus_exporter.py"]
