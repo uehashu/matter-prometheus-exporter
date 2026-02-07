@@ -144,9 +144,6 @@ dmypy.json
 ehthumbs.db
 Thumbs.db
 
-# Docker
-.dockerignore
-
 # Project specific
 data.txt
 dump.json

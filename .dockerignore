@@ -1,0 +1,48 @@
+# Git関連
+.git
+.gitignore
+
+# Python関連
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS関連
+.DS_Store
+Thumbs.db
+
+# ログファイル
+*.log
+
+# テスト関連
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ドキュメント
+README.md
+*.md
+
+# Docker関連
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# その他
+.env
+.env.local
+temp/
+tmp/
