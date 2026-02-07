@@ -93,27 +93,42 @@ class MatterPrometheusExporter:
             ["unique_id"],
         )
 
-    async def update_metrics(self):
-        """Matterデータを取得してPrometheusメトリクスを更新"""
+    def _clear_all_metrics(self):
+        """すべてのメトリクスをクリア"""
+        self.active_power_gauge.clear()
+        self.rms_voltage_gauge.clear()
+        self.rms_current_gauge.clear()
+        self.node_label_gauge.clear()
+        self.available_gauge.clear()
+
+    async def update_metrics(self) -> bool:
+        """Matterデータを取得してPrometheusメトリクスを更新
+        
+        Returns:
+            bool: メトリクスの更新に成功した場合True、失敗した場合False
+        """
         try:
             # Matter接続状態をチェック
             if self.matter_client is None:
                 self.logger.warning("Matterクライアントが初期化されていません")
-                return
+                # 既存のメトリクスをクリア
+                self._clear_all_metrics()
+                return False
 
             metrics_data = await self.matter_client.get_metrics_with_electrical()
 
-            if not metrics_data:
+            # Noneが返された場合はエラー（通信失敗など）
+            if metrics_data is None:
                 self.logger.warning("メトリクスデータが取得できませんでした")
-                return
+                # 既存のメトリクスをクリア
+                self._clear_all_metrics()
+                return False
 
+            # 空のリスト[]は正常（デバイスなし）として扱う
             # 既存のメトリクスをクリア
-            self.active_power_gauge.clear()
-            self.rms_voltage_gauge.clear()
-            self.rms_current_gauge.clear()
-            self.node_label_gauge.clear()
-            self.available_gauge.clear()
-            # 取得したデータでメトリクスを更新
+            self._clear_all_metrics()
+            
+            # 取得したデータでメトリクスを更新（空リストの場合は何も更新されない）
             for metric in metrics_data:
                 unique_id = (
                     metric.unique_id or f"node_{metric.node_id}_ep_{metric.endpoint_id}"
@@ -140,9 +155,13 @@ class MatterPrometheusExporter:
                         1 if metric.available else 0
                     )
             self.logger.debug(f"{len(metrics_data)}個のメトリクスを更新しました")
+            return True
 
         except Exception as e:
             self.logger.error(f"メトリクス更新エラー: {e}")
+            # エラー時も既存のメトリクスをクリア
+            self._clear_all_metrics()
+            return False
 
     async def handle_metrics(self, request):
         """Prometheusメトリクスエンドポイント（オンデマンド取得）"""
@@ -163,14 +182,29 @@ class MatterPrometheusExporter:
 
             # リアルタイムでメトリクスを更新
             self.logger.debug("メトリクスをリアルタイム取得中...")
-            await self.update_metrics()
+            success = await self.update_metrics()
+            
+            # メトリクス取得に失敗した場合も503を返す
+            if not success:
+                self.logger.warning(
+                    f"Prometheusメトリクスアクセス: {client_ip} (メトリクス取得失敗)"
+                )
+                return web.Response(
+                    status=503,
+                    text="# Failed to fetch metrics from Matter Server\n",
+                    content_type="text/plain",
+                )
 
             # Prometheus形式で出力
             output = generate_latest()
             return web.Response(text=output.decode("utf-8"), content_type="text/plain")
         except Exception as e:
             self.logger.error(f"メトリクス生成エラー: {e}")
-            return web.Response(status=500, text="Internal Server Error")
+            return web.Response(
+                status=503,
+                text=f"# Error: {e}\n",
+                content_type="text/plain",
+            )
 
     async def handle_health(self, request):
         """ヘルスチェックエンドポイント"""
@@ -230,6 +264,15 @@ class MatterPrometheusExporter:
                     except Exception as e:
                         self.logger.error(f"Matter Server接続確認エラー: {e}")
                         break
+
+                # 内側のループを抜けた場合、即座に接続をクリーンアップ
+                if self.matter_client:
+                    self.logger.debug("切断された接続をクリーンアップ中...")
+                    try:
+                        await self.matter_client.disconnect()
+                    except Exception as e:
+                        self.logger.debug(f"切断時のエラー（無視）: {e}")
+                    self.matter_client = None
 
             except asyncio.CancelledError:
                 break

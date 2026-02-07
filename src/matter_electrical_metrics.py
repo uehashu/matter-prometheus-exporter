@@ -92,13 +92,16 @@ class MatterElectricalMetrics:
             self._connected = True
 
             # start_listening()をバックグラウンドタスクとして実行
-            # 例外処理を追加
+            # 正常終了・異常終了問わず、タスク終了=切断とみなす
             async def listening_with_error_handling():
                 try:
                     await self._client.start_listening()
+                    # 正常終了した場合も切断とみなす
+                    self._logger.warning("リスニングタスクが正常終了しました（サーバー切断の可能性）")
                 except Exception as e:
                     self._logger.error(f"リスニングタスクでエラー: {e}")
-                    # 接続状態を無効化
+                finally:
+                    # 正常/異常問わず、タスク終了時は接続状態を無効化
                     self._connected = False
 
             self._listening_task = asyncio.create_task(listening_with_error_handling())
@@ -165,6 +168,12 @@ class MatterElectricalMetrics:
         """
         if not self._connected or not self._client:
             raise ConnectionError("Matter Serverに接続されていません。")
+        
+        # リスニングタスクが終了している場合も切断とみなす
+        if hasattr(self, "_listening_task") and self._listening_task.done():
+            self._logger.warning("リスニングタスクが終了しています")
+            self._connected = False
+            raise ConnectionError("Matter Server接続が切断されました（リスニングタスク終了）。")
 
     async def get_basic_information(self) -> dict[int, dict[str, str]] | None:
         """
