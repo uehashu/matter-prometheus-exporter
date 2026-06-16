@@ -22,7 +22,7 @@ class MatterPrometheusExporter:
         prometheus_port: int = 8000,
         reconnect_interval: int = 10,
         log_level: int = logging.WARNING,
-        logger: logging.Logger = None,
+        logger: logging.Logger | None = None,
     ):
         """
         Matter Prometheus Exporter
