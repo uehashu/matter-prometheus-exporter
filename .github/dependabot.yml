@@ -1,0 +1,6 @@
+version: 2
+updates:
+  - package-ecosystem: "docker"
+    directory: "/" # Dockerfile のある場所
+    schedule:
+      interval: "weekly"
