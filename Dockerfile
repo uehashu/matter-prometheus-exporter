@@ -1,5 +1,5 @@
 # Multi-stage build for optimization
-FROM python:3-slim@sha256:b316bdd48110d963d54ce090b4eaeb673cd572393a4fa3867a1824aa477d7940
+FROM python:3-slim@sha256:44dd04494ee8f3b538294360e7c4b3acb87c8268e4d0a4828a6500b1eff50061
 
 WORKDIR /app
 
