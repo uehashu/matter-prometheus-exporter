@@ -160,3 +160,5 @@ tmp/
 *.pem
 *.crt
 secrets/
+# ユーザー環境固有の名前定義（誤コミット防止）
+names.yaml

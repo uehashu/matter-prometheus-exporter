@@ -31,7 +31,8 @@ matter_endpoint_info{device, endpoint, name, serial, vendor, product,
 ```
 
 - `device` = Matter の `UniqueID`（不変）。名前を変えても時系列は途切れない
-- オフラインのノードは `matter_node_available 0` のみを出力する（古い値を出さない）
+- オフラインのノードは値メトリクスを出力しない（古い値を出さない）。
+  `matter_node_available 0` と `matter_endpoint_info` は出し続ける
 - 設計の背景は [docs/design-v2.md](docs/design-v2.md) を参照
 
 ## 前提条件

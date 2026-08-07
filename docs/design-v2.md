@@ -57,8 +57,12 @@ matter_node_available{device="<UniqueID>"}
 - 単位換算は現行踏襲: mW/mV/mA → W/V/A（÷1000）。
   電力量は EEM の mWh → Wh（÷1000）
 - **ノードがオフライン（`available=False`）のときは値メトリクスを出力しない。**
-  `matter_node_available 0` のみを出す。古い値が生きた値として見え続けるのを防ぎ、
+  古い値が生きた値として見え続けるのを防ぎ、
   Grafana では自然に欠測（No data / 途切れ）として表示される
+- ただし **info メトリクスと `matter_node_available` はオフライン中も出し続ける**（v2.1.0〜）。
+  info はメタデータであり測定値ではないため。Grafana の join は
+  `matter_endpoint_info @ end()`（表示範囲末尾 = 現在の名前）に固定しており、
+  info が消えるとオフライン機の過去の履歴までグラフから消えてしまう
 
 ### 1.2 info メトリクス
 

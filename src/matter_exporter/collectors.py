@@ -131,8 +131,6 @@ def build_metric_families(nodes: list[MatterNode], resolver: NameResolver) -> li
     for node in nodes:
         device = node_device_id(node)
         families["matter_node_available"].add_metric([device], 1 if node.available else 0)
-        if not node.available:
-            continue  # オフラインノードは可用性のみ（古い値を出さない）
 
         for endpoint in node.endpoints.values():
             matched = [c for c in COLLECTORS if endpoint.has_cluster(c.cluster)]
@@ -157,6 +155,12 @@ def build_metric_families(nodes: list[MatterNode], resolver: NameResolver) -> li
                 ],
                 1,
             )
+
+            if not node.available:
+                # オフライン中は値メトリクス（古い測定値）を出さない。
+                # ただし info はメタデータなので出し続ける — Grafana 側の join は
+                # 現在時点の info に固定されており、消えると過去の履歴まで表示されなくなる
+                continue
 
             for collector in matched:
                 for sample in collector.collect(endpoint):

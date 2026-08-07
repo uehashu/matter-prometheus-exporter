@@ -64,8 +64,8 @@ class TestPlugMetrics:
         }
         assert energy[(device, "import")] == pytest.approx(60513.0)  # 60513000 mWh
 
-    def test_offline_node_yields_only_availability(self, plugs, resolver):
-        """A-2 回帰: オフラインノードは available=0 のみ。例外も値メトリクスも出ない"""
+    def test_offline_node_yields_no_value_metrics(self, plugs, resolver):
+        """A-2 回帰: オフラインノードは例外を起こさず、値メトリクス（古い値）を出さない"""
         families = build_metric_families(plugs, resolver)
         offline = next(n for n in plugs if not n.available)
         device = offline.device_info.uniqueID
@@ -76,9 +76,34 @@ class TestPlugMetrics:
         )
         assert availability[device] == 0
 
-        for metric in ("matter_active_power_watts", "matter_endpoint_info"):
+        for metric in (
+            "matter_active_power_watts",
+            "matter_rms_voltage_volts",
+            "matter_rms_current_amps",
+            "matter_energy_watt_hours_total",
+        ):
             devices = [labels["device"] for labels, _ in samples_of(families, metric)]
             assert device not in devices
+
+    def test_offline_node_still_yields_info(self, plugs, resolver):
+        """オフライン中も info（メタデータ）は出し続ける。
+
+        Grafana の join を @ end()（現在時点の名前）に固定しているため、
+        info が消えるとオフライン機の過去の履歴までグラフから消えてしまう。
+        """
+        families = build_metric_families(plugs, resolver)
+        offline = next(n for n in plugs if not n.available)
+        device = offline.device_info.uniqueID
+
+        info = {
+            labels["device"]: labels
+            for labels, _ in samples_of(families, "matter_endpoint_info")
+        }
+        assert device in info
+        labels = info[device]
+        assert labels["endpoint"] == "1"
+        assert labels["name"] == offline.device_info.serialNumber  # 未命名 → serial
+        assert labels["sensor_types"] == "power"
 
     def test_online_nodes_available_is_one(self, plugs, resolver):
         families = build_metric_families(plugs, resolver)
