@@ -1,0 +1,242 @@
+{
+  "__inputs": [
+    {
+      "name": "DS_PROMETHEUS",
+      "label": "Prometheus",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "prometheus",
+      "pluginName": "Prometheus"
+    }
+  ],
+  "title": "Matter 電力モニタリング",
+  "uid": "matter-power",
+  "tags": ["matter", "power"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-6h", "to": "now" },
+  "templating": {
+    "list": [
+      {
+        "name": "name",
+        "label": "デバイス",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+        "query": "label_values(matter_endpoint_info{sensor_types=~\".*power.*\"}, name)",
+        "refresh": 2,
+        "multi": true,
+        "includeAll": true,
+        "sort": 1
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "row",
+      "title": "全体",
+      "id": 100,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "type": "stat",
+      "title": "合計消費電力",
+      "id": 101,
+      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(matter_active_power_watts * on(device, endpoint) group_left(topology) matter_endpoint_info{topology!=\"NODE\"})",
+          "legendFormat": "合計"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watt",
+          "decimals": 1,
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": []
+      },
+      "options": { "graphMode": "area", "colorMode": "value" }
+    },
+    {
+      "type": "stat",
+      "title": "期間内の合計電力量",
+      "id": 102,
+      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 6 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(increase(matter_energy_watt_hours_total{direction=\"import\"}[$__range])) / 1000",
+          "legendFormat": "電力量"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "kwatth",
+          "decimals": 2,
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": []
+      },
+      "options": { "graphMode": "none", "colorMode": "value" }
+    },
+    {
+      "type": "timeseries",
+      "title": "全デバイス 消費電力",
+      "id": 103,
+      "gridPos": { "h": 10, "w": 18, "x": 6, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "matter_active_power_watts * on(device, endpoint) group_left(name) matter_endpoint_info",
+          "legendFormat": "{{name}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watt",
+          "custom": { "fillOpacity": 10, "showPoints": "never" },
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "right", "calcs": ["lastNotNull", "mean"] }
+      }
+    },
+    {
+      "type": "row",
+      "title": "$name",
+      "id": 200,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 11 },
+      "collapsed": false,
+      "repeat": "name",
+      "repeatDirection": "v",
+      "panels": []
+    },
+    {
+      "type": "stat",
+      "title": "消費電力",
+      "id": 201,
+      "gridPos": { "h": 8, "w": 4, "x": 0, "y": 12 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "matter_active_power_watts * on(device, endpoint) group_left(name) matter_endpoint_info{name=\"$name\"}",
+          "legendFormat": "{{name}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watt",
+          "decimals": 1,
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": []
+      },
+      "options": { "graphMode": "area", "colorMode": "value" }
+    },
+    {
+      "type": "timeseries",
+      "title": "消費電力の推移",
+      "id": 202,
+      "gridPos": { "h": 8, "w": 10, "x": 4, "y": 12 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "matter_active_power_watts * on(device, endpoint) group_left(name) matter_endpoint_info{name=\"$name\"}",
+          "legendFormat": "{{name}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watt",
+          "custom": { "fillOpacity": 20, "showPoints": "never" },
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": []
+      },
+      "options": { "legend": { "displayMode": "hidden" } }
+    },
+    {
+      "type": "timeseries",
+      "title": "電圧 / 電流",
+      "id": 203,
+      "gridPos": { "h": 8, "w": 6, "x": 14, "y": 12 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "matter_rms_voltage_volts * on(device, endpoint) group_left(name) matter_endpoint_info{name=\"$name\"}",
+          "legendFormat": "電圧"
+        },
+        {
+          "refId": "B",
+          "expr": "matter_rms_current_amps * on(device, endpoint) group_left(name) matter_endpoint_info{name=\"$name\"}",
+          "legendFormat": "電流"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "volt",
+          "custom": { "fillOpacity": 0, "showPoints": "never" },
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "電流" },
+            "properties": [
+              { "id": "unit", "value": "amp" },
+              { "id": "custom.axisPlacement", "value": "right" }
+            ]
+          }
+        ]
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } }
+    },
+    {
+      "type": "stat",
+      "title": "稼働状態",
+      "id": 204,
+      "gridPos": { "h": 8, "w": 4, "x": 20, "y": 12 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "matter_node_available and on(device) matter_endpoint_info{name=\"$name\"}",
+          "legendFormat": "稼働"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": { "text": "オフライン", "color": "red", "index": 1 },
+                "1": { "text": "オンライン", "color": "green", "index": 0 }
+              }
+            }
+          ],
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }]
+          }
+        },
+        "overrides": []
+      },
+      "options": { "graphMode": "none", "colorMode": "background", "textMode": "value" }
+    }
+  ]
+}

@@ -12,6 +12,10 @@ services:
       MATTER_WS_URL: ${MATTER_WS_URL:-ws://host.docker.internal:5580/ws}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       MATTER_RECONNECT_INTERVAL: ${MATTER_RECONNECT_INTERVAL:-10}
+      # 名前付け機能を使う場合は names.yaml をマウントして有効化する
+      # MATTER_NAMES_FILE: /config/names.yaml
+    # volumes:
+    #   - ./names.yaml:/config/names.yaml:ro
     ports:
       - "${PROMETHEUS_EXPORTER_PORT:-8000}:8000"
 

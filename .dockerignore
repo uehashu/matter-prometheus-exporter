@@ -39,10 +39,14 @@ README.md
 # Docker関連
 Dockerfile
 .dockerignore
-docker-compose*.yml
+docker-compose*.y*ml
 
 # その他
 .env
 .env.local
 temp/
 tmp/
+# テスト・CI（イメージに不要）
+tests/
+.github/
+grafana/

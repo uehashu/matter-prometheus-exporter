@@ -1,8 +1,8 @@
-# Core dependencies
-aiohttp>=3.8.0
-prometheus_client>=0.16.0
+# ランタイム依存（上限を付けてメジャーバージョン更新での破壊を防ぐ）
+aiohttp>=3.9,<4
+prometheus_client>=0.20,<1
+python-matter-server>=8.1,<9
+PyYAML>=6,<7
 
-python-matter-server
-
-# Optional: For better async performance
-uvloop>=0.17.0; sys_platform != "win32"
+# 任意: asyncioの高速化（利用可能なら自動で使う）
+uvloop>=0.19; sys_platform != "win32"
