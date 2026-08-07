@@ -1,406 +1,1054 @@
 {
-  "__inputs": [
+  "annotations": [
     {
-      "name": "DS_PROMETHEUS",
-      "label": "Prometheus",
-      "description": "",
-      "type": "datasource",
-      "pluginId": "prometheus",
-      "pluginName": "Prometheus"
+      "kind": "AnnotationQuery",
+      "spec": {
+        "builtIn": true,
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "query": {
+          "datasource": {
+            "name": "-- Grafana --"
+          },
+          "group": "grafana",
+          "kind": "DataQuery",
+          "spec": {},
+          "version": "v0"
+        }
+      }
     }
   ],
-  "title": "Matter Power Monitoring",
-  "uid": "matter-power",
+  "cursorSync": "Off",
+  "editable": true,
+  "elements": {
+    "panel-101": {
+      "kind": "Panel",
+      "spec": {
+        "data": {
+          "kind": "QueryGroup",
+          "spec": {
+            "queries": [
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "aeu1zf2ai8q2of"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "expr": "sum(matter_active_power_watts * on(device, endpoint) group_left(topology) (matter_endpoint_info{topology!=\"NODE\"} @ end()))",
+                      "legendFormat": "Total"
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "A"
+                }
+              }
+            ],
+            "queryOptions": {},
+            "transformations": []
+          }
+        },
+        "description": "",
+        "id": 101,
+        "links": [],
+        "title": "Total Power",
+        "vizConfig": {
+          "group": "stat",
+          "kind": "VizConfig",
+          "spec": {
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "palette-classic"
+                },
+                "decimals": 1,
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": 0
+                    }
+                  ]
+                },
+                "unit": "watt"
+              },
+              "overrides": []
+            },
+            "options": {
+              "colorMode": "value",
+              "graphMode": "area",
+              "justifyMode": "auto",
+              "orientation": "auto",
+              "percentChangeColorMode": "standard",
+              "reduceOptions": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "fields": "",
+                "values": false
+              },
+              "showPercentChange": false,
+              "textMode": "auto",
+              "wideLayout": true
+            }
+          },
+          "version": "13.1.0"
+        }
+      }
+    },
+    "panel-102": {
+      "kind": "Panel",
+      "spec": {
+        "data": {
+          "kind": "QueryGroup",
+          "spec": {
+            "queries": [
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "aeu1zf2ai8q2of"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "expr": "sum(increase(matter_energy_watt_hours_total{direction=\"import\"}[$__range])) / 1000",
+                      "legendFormat": "Energy"
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "A"
+                }
+              }
+            ],
+            "queryOptions": {},
+            "transformations": []
+          }
+        },
+        "description": "",
+        "id": 102,
+        "links": [],
+        "title": "Energy (Selected Range)",
+        "vizConfig": {
+          "group": "stat",
+          "kind": "VizConfig",
+          "spec": {
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "palette-classic"
+                },
+                "decimals": 2,
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": 0
+                    }
+                  ]
+                },
+                "unit": "kwatth"
+              },
+              "overrides": []
+            },
+            "options": {
+              "colorMode": "value",
+              "graphMode": "none",
+              "justifyMode": "auto",
+              "orientation": "auto",
+              "percentChangeColorMode": "standard",
+              "reduceOptions": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "fields": "",
+                "values": false
+              },
+              "showPercentChange": false,
+              "textMode": "auto",
+              "wideLayout": true
+            }
+          },
+          "version": "13.1.0"
+        }
+      }
+    },
+    "panel-103": {
+      "kind": "Panel",
+      "spec": {
+        "data": {
+          "kind": "QueryGroup",
+          "spec": {
+            "queries": [
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "aeu1zf2ai8q2of"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "expr": "matter_active_power_watts * on(device, endpoint) group_left(name) (matter_endpoint_info @ end())",
+                      "legendFormat": "{{name}}"
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "A"
+                }
+              }
+            ],
+            "queryOptions": {},
+            "transformations": []
+          }
+        },
+        "description": "",
+        "id": 103,
+        "links": [],
+        "title": "Power (All Devices)",
+        "vizConfig": {
+          "group": "timeseries",
+          "kind": "VizConfig",
+          "spec": {
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "palette-classic"
+                },
+                "custom": {
+                  "axisBorderShow": false,
+                  "axisCenteredZero": false,
+                  "axisColorMode": "text",
+                  "axisLabel": "",
+                  "axisPlacement": "auto",
+                  "barAlignment": 0,
+                  "barWidthFactor": 0.6,
+                  "drawStyle": "line",
+                  "fillOpacity": 10,
+                  "gradientMode": "none",
+                  "hideFrom": {
+                    "legend": false,
+                    "tooltip": false,
+                    "viz": false
+                  },
+                  "insertNulls": false,
+                  "lineInterpolation": "linear",
+                  "lineWidth": 1,
+                  "pointSize": 5,
+                  "scaleDistribution": {
+                    "type": "linear"
+                  },
+                  "showPoints": "never",
+                  "showValues": false,
+                  "spanNulls": false,
+                  "stacking": {
+                    "group": "A",
+                    "mode": "none"
+                  },
+                  "thresholdsStyle": {
+                    "mode": "off"
+                  }
+                },
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": 0
+                    }
+                  ]
+                },
+                "unit": "watt"
+              },
+              "overrides": []
+            },
+            "options": {
+              "annotations": {
+                "clustering": -1,
+                "multiLane": false
+              },
+              "legend": {
+                "calcs": [
+                  "lastNotNull",
+                  "mean"
+                ],
+                "displayMode": "table",
+                "enableFacetedFilter": false,
+                "overflow": "ellipsis",
+                "placement": "right",
+                "showLegend": true
+              },
+              "tooltip": {
+                "hideZeros": false,
+                "mode": "single",
+                "sort": "none"
+              }
+            }
+          },
+          "version": "13.1.0"
+        }
+      }
+    },
+    "panel-201": {
+      "kind": "Panel",
+      "spec": {
+        "data": {
+          "kind": "QueryGroup",
+          "spec": {
+            "queries": [
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "aeu1zf2ai8q2of"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "expr": "matter_active_power_watts * on(device, endpoint) group_left(name) (matter_endpoint_info{name=~\"${name:regex}\"} @ end())",
+                      "legendFormat": "{{name}}"
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "A"
+                }
+              }
+            ],
+            "queryOptions": {},
+            "transformations": []
+          }
+        },
+        "description": "",
+        "id": 201,
+        "links": [],
+        "title": "Power",
+        "vizConfig": {
+          "group": "stat",
+          "kind": "VizConfig",
+          "spec": {
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "fixedColor": "#ad46ff",
+                  "mode": "thresholds"
+                },
+                "decimals": 1,
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": 0
+                    }
+                  ]
+                },
+                "unit": "watt"
+              },
+              "overrides": []
+            },
+            "options": {
+              "colorMode": "value",
+              "graphMode": "none",
+              "justifyMode": "auto",
+              "orientation": "auto",
+              "percentChangeColorMode": "standard",
+              "reduceOptions": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "fields": "",
+                "values": false
+              },
+              "showPercentChange": false,
+              "textMode": "auto",
+              "wideLayout": true
+            }
+          },
+          "version": "13.1.0"
+        }
+      }
+    },
+    "panel-202": {
+      "kind": "Panel",
+      "spec": {
+        "data": {
+          "kind": "QueryGroup",
+          "spec": {
+            "queries": [
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "aeu1zf2ai8q2of"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "expr": "matter_active_power_watts * on(device, endpoint) group_left(name) (matter_endpoint_info{name=~\"${name:regex}\"} @ end())",
+                      "legendFormat": "{{name}}"
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "A"
+                }
+              }
+            ],
+            "queryOptions": {},
+            "transformations": []
+          }
+        },
+        "description": "",
+        "id": 202,
+        "links": [],
+        "title": "Power History",
+        "vizConfig": {
+          "group": "timeseries",
+          "kind": "VizConfig",
+          "spec": {
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "palette-classic",
+                  "seriesBy": "last"
+                },
+                "custom": {
+                  "axisBorderShow": false,
+                  "axisCenteredZero": false,
+                  "axisColorMode": "text",
+                  "axisLabel": "",
+                  "axisPlacement": "auto",
+                  "barAlignment": 0,
+                  "barWidthFactor": 0.6,
+                  "drawStyle": "line",
+                  "fillOpacity": 30,
+                  "gradientMode": "opacity",
+                  "hideFrom": {
+                    "legend": false,
+                    "tooltip": false,
+                    "viz": false
+                  },
+                  "insertNulls": false,
+                  "lineInterpolation": "linear",
+                  "lineStyle": {
+                    "fill": "solid"
+                  },
+                  "lineWidth": 1,
+                  "pointSize": 5,
+                  "scaleDistribution": {
+                    "type": "linear"
+                  },
+                  "showPoints": "auto",
+                  "showValues": false,
+                  "spanNulls": false,
+                  "stacking": {
+                    "group": "A",
+                    "mode": "none"
+                  },
+                  "thresholdsStyle": {
+                    "mode": "off"
+                  }
+                },
+                "fieldMinMax": true,
+                "min": 0,
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": 0
+                    }
+                  ]
+                },
+                "unit": "watt"
+              },
+              "overrides": []
+            },
+            "options": {
+              "annotations": {
+                "clustering": -1,
+                "multiLane": false
+              },
+              "legend": {
+                "calcs": [],
+                "displayMode": "list",
+                "enableFacetedFilter": false,
+                "overflow": "ellipsis",
+                "placement": "bottom",
+                "showLegend": false
+              },
+              "tooltip": {
+                "hideZeros": false,
+                "mode": "single",
+                "sort": "none"
+              }
+            }
+          },
+          "version": "13.1.0"
+        }
+      }
+    },
+    "panel-203": {
+      "kind": "Panel",
+      "spec": {
+        "data": {
+          "kind": "QueryGroup",
+          "spec": {
+            "queries": [
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "aeu1zf2ai8q2of"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "expr": "matter_rms_voltage_volts * on(device, endpoint) group_left(name) (matter_endpoint_info{name=~\"${name:regex}\"} @ end())",
+                      "legendFormat": "Voltage"
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "A"
+                }
+              }
+            ],
+            "queryOptions": {},
+            "transformations": []
+          }
+        },
+        "description": "",
+        "id": 203,
+        "links": [],
+        "title": "Voltage",
+        "vizConfig": {
+          "group": "timeseries",
+          "kind": "VizConfig",
+          "spec": {
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "palette-classic",
+                  "seriesBy": "last"
+                },
+                "custom": {
+                  "axisBorderShow": false,
+                  "axisCenteredZero": false,
+                  "axisColorMode": "text",
+                  "axisLabel": "",
+                  "axisPlacement": "auto",
+                  "barAlignment": 0,
+                  "barWidthFactor": 0.6,
+                  "drawStyle": "line",
+                  "fillOpacity": 30,
+                  "gradientMode": "opacity",
+                  "hideFrom": {
+                    "legend": false,
+                    "tooltip": false,
+                    "viz": false
+                  },
+                  "insertNulls": false,
+                  "lineInterpolation": "linear",
+                  "lineStyle": {
+                    "fill": "solid"
+                  },
+                  "lineWidth": 1,
+                  "pointSize": 4,
+                  "scaleDistribution": {
+                    "type": "linear"
+                  },
+                  "showPoints": "auto",
+                  "showValues": false,
+                  "spanNulls": false,
+                  "stacking": {
+                    "group": "A",
+                    "mode": "none"
+                  },
+                  "thresholdsStyle": {
+                    "mode": "off"
+                  }
+                },
+                "fieldMinMax": false,
+                "min": 0,
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": 0
+                    }
+                  ]
+                },
+                "unit": "volt"
+              },
+              "overrides": []
+            },
+            "options": {
+              "annotations": {
+                "clustering": -1,
+                "multiLane": false
+              },
+              "legend": {
+                "calcs": [],
+                "displayMode": "list",
+                "enableFacetedFilter": false,
+                "overflow": "ellipsis",
+                "placement": "bottom",
+                "showLegend": true
+              },
+              "tooltip": {
+                "hideZeros": false,
+                "mode": "single",
+                "sort": "none"
+              }
+            }
+          },
+          "version": "13.1.0"
+        }
+      }
+    },
+    "panel-204": {
+      "kind": "Panel",
+      "spec": {
+        "data": {
+          "kind": "QueryGroup",
+          "spec": {
+            "queries": [
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "aeu1zf2ai8q2of"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "expr": "matter_node_available and on(device) (matter_endpoint_info{name=~\"${name:regex}\"} @ end())",
+                      "legendFormat": "State"
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "A"
+                }
+              }
+            ],
+            "queryOptions": {},
+            "transformations": []
+          }
+        },
+        "description": "",
+        "id": 204,
+        "links": [],
+        "title": "Availability",
+        "vizConfig": {
+          "group": "stat",
+          "kind": "VizConfig",
+          "spec": {
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "thresholds"
+                },
+                "mappings": [
+                  {
+                    "options": {
+                      "0": {
+                        "color": "red",
+                        "index": 1,
+                        "text": "Unavailable"
+                      },
+                      "1": {
+                        "color": "green",
+                        "index": 0,
+                        "text": "Available"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ],
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": 0
+                    },
+                    {
+                      "color": "green",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              "overrides": []
+            },
+            "options": {
+              "colorMode": "background",
+              "graphMode": "none",
+              "justifyMode": "auto",
+              "orientation": "auto",
+              "percentChangeColorMode": "standard",
+              "reduceOptions": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "fields": "",
+                "values": false
+              },
+              "showPercentChange": false,
+              "textMode": "value",
+              "wideLayout": true
+            }
+          },
+          "version": "13.1.0"
+        }
+      }
+    },
+    "panel-205": {
+      "kind": "Panel",
+      "spec": {
+        "data": {
+          "kind": "QueryGroup",
+          "spec": {
+            "queries": [
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "aeu1zf2ai8q2of"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "expr": "matter_rms_current_amps * on(device, endpoint) group_left(name) (matter_endpoint_info{name=~\"${name:regex}\"} @ end())",
+                      "legendFormat": "Current"
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "B"
+                }
+              }
+            ],
+            "queryOptions": {},
+            "transformations": []
+          }
+        },
+        "description": "",
+        "id": 205,
+        "links": [],
+        "title": "Current",
+        "vizConfig": {
+          "group": "timeseries",
+          "kind": "VizConfig",
+          "spec": {
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "palette-classic",
+                  "seriesBy": "last"
+                },
+                "custom": {
+                  "axisBorderShow": false,
+                  "axisCenteredZero": false,
+                  "axisColorMode": "text",
+                  "axisLabel": "",
+                  "axisPlacement": "auto",
+                  "barAlignment": 0,
+                  "barWidthFactor": 0.6,
+                  "drawStyle": "line",
+                  "fillOpacity": 30,
+                  "gradientMode": "opacity",
+                  "hideFrom": {
+                    "legend": false,
+                    "tooltip": false,
+                    "viz": false
+                  },
+                  "insertNulls": false,
+                  "lineInterpolation": "linear",
+                  "lineStyle": {
+                    "fill": "solid"
+                  },
+                  "lineWidth": 1,
+                  "pointSize": 4,
+                  "scaleDistribution": {
+                    "type": "linear"
+                  },
+                  "showPoints": "auto",
+                  "showValues": false,
+                  "spanNulls": false,
+                  "stacking": {
+                    "group": "A",
+                    "mode": "none"
+                  },
+                  "thresholdsStyle": {
+                    "mode": "off"
+                  }
+                },
+                "min": 0,
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": 0
+                    }
+                  ]
+                },
+                "unit": "amp"
+              },
+              "overrides": []
+            },
+            "options": {
+              "annotations": {
+                "clustering": -1,
+                "multiLane": false
+              },
+              "legend": {
+                "calcs": [],
+                "displayMode": "list",
+                "enableFacetedFilter": false,
+                "overflow": "ellipsis",
+                "placement": "bottom",
+                "showLegend": true
+              },
+              "tooltip": {
+                "hideZeros": false,
+                "mode": "single",
+                "sort": "none"
+              }
+            }
+          },
+          "version": "13.1.0"
+        }
+      }
+    }
+  },
+  "layout": {
+    "kind": "RowsLayout",
+    "spec": {
+      "rows": [
+        {
+          "kind": "RowsLayoutRow",
+          "spec": {
+            "collapse": false,
+            "layout": {
+              "kind": "GridLayout",
+              "spec": {
+                "items": [
+                  {
+                    "kind": "GridLayoutItem",
+                    "spec": {
+                      "element": {
+                        "kind": "ElementReference",
+                        "name": "panel-101"
+                      },
+                      "height": 5,
+                      "width": 6,
+                      "x": 0,
+                      "y": 0
+                    }
+                  },
+                  {
+                    "kind": "GridLayoutItem",
+                    "spec": {
+                      "element": {
+                        "kind": "ElementReference",
+                        "name": "panel-103"
+                      },
+                      "height": 10,
+                      "width": 18,
+                      "x": 6,
+                      "y": 0
+                    }
+                  },
+                  {
+                    "kind": "GridLayoutItem",
+                    "spec": {
+                      "element": {
+                        "kind": "ElementReference",
+                        "name": "panel-102"
+                      },
+                      "height": 5,
+                      "width": 6,
+                      "x": 0,
+                      "y": 5
+                    }
+                  }
+                ]
+              }
+            },
+            "title": "Overview"
+          }
+        },
+        {
+          "kind": "RowsLayoutRow",
+          "spec": {
+            "collapse": false,
+            "layout": {
+              "kind": "GridLayout",
+              "spec": {
+                "items": [
+                  {
+                    "kind": "GridLayoutItem",
+                    "spec": {
+                      "element": {
+                        "kind": "ElementReference",
+                        "name": "panel-201"
+                      },
+                      "height": 4,
+                      "width": 4,
+                      "x": 0,
+                      "y": 0
+                    }
+                  },
+                  {
+                    "kind": "GridLayoutItem",
+                    "spec": {
+                      "element": {
+                        "kind": "ElementReference",
+                        "name": "panel-202"
+                      },
+                      "height": 8,
+                      "width": 8,
+                      "x": 4,
+                      "y": 0
+                    }
+                  },
+                  {
+                    "kind": "GridLayoutItem",
+                    "spec": {
+                      "element": {
+                        "kind": "ElementReference",
+                        "name": "panel-203"
+                      },
+                      "height": 8,
+                      "width": 6,
+                      "x": 12,
+                      "y": 0
+                    }
+                  },
+                  {
+                    "kind": "GridLayoutItem",
+                    "spec": {
+                      "element": {
+                        "kind": "ElementReference",
+                        "name": "panel-205"
+                      },
+                      "height": 8,
+                      "width": 6,
+                      "x": 18,
+                      "y": 0
+                    }
+                  },
+                  {
+                    "kind": "GridLayoutItem",
+                    "spec": {
+                      "element": {
+                        "kind": "ElementReference",
+                        "name": "panel-204"
+                      },
+                      "height": 4,
+                      "width": 4,
+                      "x": 0,
+                      "y": 4
+                    }
+                  }
+                ]
+              }
+            },
+            "repeat": {
+              "mode": "variable",
+              "value": "name"
+            },
+            "title": "$name"
+          }
+        }
+      ]
+    }
+  },
+  "links": [],
+  "liveNow": false,
+  "preload": false,
   "tags": [
     "matter",
     "power"
   ],
-  "timezone": "browser",
-  "schemaVersion": 39,
-  "version": 5,
-  "refresh": "30s",
-  "time": {
-    "from": "now-6h",
+  "timeSettings": {
+    "autoRefresh": "30s",
+    "autoRefreshIntervals": [
+      "5s",
+      "10s",
+      "30s",
+      "1m",
+      "5m",
+      "15m",
+      "30m",
+      "1h",
+      "2h",
+      "1d"
+    ],
+    "fiscalYearStartMonth": 0,
+    "from": "now-3h",
+    "hideTimepicker": false,
+    "timezone": "browser",
     "to": "now"
   },
-  "templating": {
-    "list": [
-      {
-        "name": "name",
-        "label": "Device",
-        "type": "query",
-        "datasource": {
-          "type": "prometheus",
-          "uid": "${DS_PROMETHEUS}"
-        },
-        "query": "query_result(matter_endpoint_info{sensor_types=~\".*power.*\"})",
-        "refresh": 2,
-        "multi": true,
-        "includeAll": true,
-        "sort": 1,
+  "title": "Matter Power Monitoring",
+  "variables": [
+    {
+      "kind": "QueryVariable",
+      "spec": {
+        "allowCustomValue": true,
         "current": {
-          "selected": true,
-          "text": [
-            "All"
-          ],
+          "text": "All",
           "value": [
             "$__all"
           ]
         },
-        "allValue": null,
+        "definition": "query_result(matter_endpoint_info{sensor_types=~\".*power.*\"})",
+        "hide": "dontHide",
+        "includeAll": true,
+        "label": "Device",
+        "multi": true,
+        "name": "name",
+        "options": [],
+        "query": {
+          "datasource": {
+            "name": "aeu1zf2ai8q2of"
+          },
+          "group": "prometheus",
+          "kind": "DataQuery",
+          "spec": {
+            "__legacyStringValue": "query_result(matter_endpoint_info{sensor_types=~\".*power.*\"})"
+          },
+          "version": "v0"
+        },
+        "refresh": "onTimeRangeChanged",
         "regex": "/name=\"([^\"]+)\"/",
-        "definition": "query_result(matter_endpoint_info{sensor_types=~\".*power.*\"})"
-      }
-    ]
-  },
-  "panels": [
-    {
-      "type": "row",
-      "title": "Overview",
-      "id": 100,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 0
-      },
-      "collapsed": false,
-      "panels": []
-    },
-    {
-      "type": "stat",
-      "title": "Total Power",
-      "id": 101,
-      "gridPos": {
-        "h": 5,
-        "w": 6,
-        "x": 0,
-        "y": 1
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "sum(matter_active_power_watts * on(device, endpoint) group_left(topology) (matter_endpoint_info{topology!=\"NODE\"} @ end()))",
-          "legendFormat": "Total"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "watt",
-          "decimals": 1,
-          "color": {
-            "mode": "palette-classic"
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "graphMode": "area",
-        "colorMode": "value"
-      }
-    },
-    {
-      "type": "stat",
-      "title": "Energy (Selected Range)",
-      "id": 102,
-      "gridPos": {
-        "h": 5,
-        "w": 6,
-        "x": 0,
-        "y": 6
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "sum(increase(matter_energy_watt_hours_total{direction=\"import\"}[$__range])) / 1000",
-          "legendFormat": "Energy"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "kwatth",
-          "decimals": 2,
-          "color": {
-            "mode": "palette-classic"
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "graphMode": "none",
-        "colorMode": "value"
-      }
-    },
-    {
-      "type": "timeseries",
-      "title": "Power (All Devices)",
-      "id": 103,
-      "gridPos": {
-        "h": 10,
-        "w": 18,
-        "x": 6,
-        "y": 1
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "matter_active_power_watts * on(device, endpoint) group_left(name) (matter_endpoint_info @ end())",
-          "legendFormat": "{{name}}"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "watt",
-          "custom": {
-            "fillOpacity": 10,
-            "showPoints": "never"
-          },
-          "color": {
-            "mode": "palette-classic"
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "displayMode": "table",
-          "placement": "right",
-          "calcs": [
-            "lastNotNull",
-            "mean"
-          ]
-        }
-      }
-    },
-    {
-      "type": "row",
-      "title": "$name",
-      "id": 200,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 11
-      },
-      "collapsed": false,
-      "repeat": "name",
-      "repeatDirection": "v",
-      "panels": []
-    },
-    {
-      "type": "stat",
-      "title": "Power",
-      "id": 201,
-      "gridPos": {
-        "h": 8,
-        "w": 4,
-        "x": 0,
-        "y": 12
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "matter_active_power_watts * on(device, endpoint) group_left(name) (matter_endpoint_info{name=~\"${name:regex}\"} @ end())",
-          "legendFormat": "{{name}}"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "watt",
-          "decimals": 1,
-          "color": {
-            "mode": "palette-classic"
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "graphMode": "area",
-        "colorMode": "value"
-      }
-    },
-    {
-      "type": "timeseries",
-      "title": "Power History",
-      "id": 202,
-      "gridPos": {
-        "h": 8,
-        "w": 10,
-        "x": 4,
-        "y": 12
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "matter_active_power_watts * on(device, endpoint) group_left(name) (matter_endpoint_info{name=~\"${name:regex}\"} @ end())",
-          "legendFormat": "{{name}}"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "watt",
-          "custom": {
-            "fillOpacity": 20,
-            "showPoints": "never"
-          },
-          "color": {
-            "mode": "palette-classic"
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "showLegend": false
-        }
-      }
-    },
-    {
-      "type": "timeseries",
-      "title": "Voltage / Current",
-      "id": 203,
-      "gridPos": {
-        "h": 8,
-        "w": 6,
-        "x": 14,
-        "y": 12
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "matter_rms_voltage_volts * on(device, endpoint) group_left(name) (matter_endpoint_info{name=~\"${name:regex}\"} @ end())",
-          "legendFormat": "Voltage"
-        },
-        {
-          "refId": "B",
-          "expr": "matter_rms_current_amps * on(device, endpoint) group_left(name) (matter_endpoint_info{name=~\"${name:regex}\"} @ end())",
-          "legendFormat": "Current"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "volt",
-          "custom": {
-            "fillOpacity": 0,
-            "showPoints": "never"
-          },
-          "color": {
-            "mode": "palette-classic"
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Current"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "amp"
-              },
-              {
-                "id": "custom.axisPlacement",
-                "value": "right"
-              }
-            ]
-          }
-        ]
-      },
-      "options": {
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom"
-        }
-      }
-    },
-    {
-      "type": "stat",
-      "title": "Availability",
-      "id": 204,
-      "gridPos": {
-        "h": 8,
-        "w": 4,
-        "x": 20,
-        "y": 12
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "matter_node_available and on(device) (matter_endpoint_info{name=~\"${name:regex}\"} @ end())",
-          "legendFormat": "State"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "mappings": [
-            {
-              "type": "value",
-              "options": {
-                "0": {
-                  "text": "Unavailable",
-                  "color": "red",
-                  "index": 1
-                },
-                "1": {
-                  "text": "Available",
-                  "color": "green",
-                  "index": 0
-                }
-              }
-            }
-          ],
-          "color": {
-            "mode": "thresholds"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "green",
-                "value": 1
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "graphMode": "none",
-        "colorMode": "background",
-        "textMode": "value"
+        "regexApplyTo": "value",
+        "skipUrlSync": false,
+        "sort": "alphabeticalAsc"
       }
     }
   ]
