@@ -140,8 +140,14 @@ devices:
     name: "書斎PC"
 ```
 
+- **照合キーと命名粒度は意図的に分離している。**
+  serial（シールの MAC）は物理的に照合できる「機器」までしか特定できない
+  （シールは筐体に貼られており、口にシールは無い）。一方、命名は `endpoints:` で
+  エンドポイント（口）単位まで指定できる。「機器 = 1 名前」という制約ではない
 - 内部では必ず `UniqueID` に解決して保持する（serial は照合キー、unique_id が主キー）
 - 名前解決の優先順: `endpoints[id]` → `name` → serial → device
+- **複数口機器では口ごとに名前を付けるのが想定運用**（4.3 節参照）。
+  `name:` だけだと全口が同名にフォールバックし、ダッシュボード上で区別できなくなる
 - **スクレイプ時に mtime を確認して自動リロード。** 名前変更に再起動不要
 - ファイルパスは環境変数 `MATTER_NAMES_FILE`（未指定なら名前付け機能は無効、
   フォールバック動作のみ）
@@ -268,44 +274,80 @@ COLLECTORS = [ElectricalPowerCollector(), ElectricalEnergyCollector()]
 
 ### 4.1 ダッシュボード構成
 
-現行運用のレイアウト（機器ごとの行 = Stat + 時系列 + 可用性）を、
-**変数 + Repeat row で機器台数に依存しない形**にして `grafana/dashboard.json` として配布する。
+機器（口）ごとの行 = Stat + 時系列 + 可用性を、**変数 + Repeat row で
+台数に依存しない形**にして `grafana/dashboard.json` として配布する。
 
 ```text
-変数 ep: matter_endpoint_info{sensor_types=~".*power.*"} から (device, endpoint, name) を列挙
-行:      Repeat by $ep — 電力センサの endpoint ごとに 1 行が自動生成される
+変数 name: query_result(matter_endpoint_info{sensor_types=~".*power.*"}) を
+           instant クエリで実行し、regex /name="([^"]+)"/ で現在の名前だけを列挙
+行:        Repeat by $name — 名前ごとに 1 行が自動生成される
 ```
 
 **電力センサのみの可視化**は変数のフィルタ `sensor_types=~".*power.*"` で担保する。
 将来、電力以外のセンサをメトリクス化してもこのダッシュボードには現れない。
-（値メトリクス側も元々 EPM を持つ endpoint にしか存在しないため二重に安全）
 
-### 4.2 代表クエリ
+変数に `label_values()` を使わないのは意図的である。label_values は
+**表示時間範囲内に存在した全ての値**を返すため、改名前の旧名まで列挙され、
+全パネル No data の空行が残る（運用で顕在化した実障害）。instant クエリなら
+現在存在する名前だけになる。
+
+### 4.2 代表クエリ — join は必ず `@ end()` で現在時点に固定する
 
 ```promql
 # 消費電力（凡例 = {{name}}）
   matter_active_power_watts
 * on(device, endpoint) group_left(name)
-  matter_endpoint_info
+  (matter_endpoint_info{name=~"${name:regex}"} @ end())
 
-# 今日の電力量 kWh
-  increase(matter_energy_watt_hours_total[$__range]) / 1000
-* on(device, endpoint) group_left(name)
-  matter_endpoint_info
-
-# 全体合計（合計値トポロジの機器を除外して二重計上を防ぐ）
+# 全体合計（合計値トポロジのエンドポイントを除外して二重計上を防ぐ）
 sum(
     matter_active_power_watts
   * on(device, endpoint) group_left(topology)
-    matter_endpoint_info{topology!="NODE"}
+    (matter_endpoint_info{topology!="NODE"} @ end())
 )
 
-# 可用性
-matter_node_available
+# 期間内の電力量 kWh（join 不要）
+sum(increase(matter_energy_watt_hours_total{direction="import"}[$__range])) / 1000
+
+# 可用性（ノード単位）
+matter_node_available and on(device) (matter_endpoint_info{name=~"${name:regex}"} @ end())
 ```
 
-名前の変更は names.yaml の編集だけで反映され（次スクレイプから凡例が変わる）、
-`(device, endpoint)` が不変なので**時系列は途切れない**。
+設計上の要点（いずれも運用で顕在化した問題への対処）:
+
+- **`@ end()`（表示範囲末尾 = 現在時点の info に固定）が必須。**
+  素の join では name ラベルが info の履歴に追随するため、改名した瞬間に
+  表示上の系列が旧名と新名に分裂し、時間範囲が改名時点を含む間は2本描かれる。
+  `@ end()` により過去のデータも現在の名前で1本に繋がる
+- `@ end()` の副作用として「現在 info が無い機器は履歴ごと消える」ため、
+  **オフライン中も info メトリクスを出し続ける**（1.1節、v2.1.0）とセットの設計である
+- 変数の展開は `${name:regex}`（メタ文字エスケープ付き）を使う。
+  `#` 等を含む名前でも安全
+- データ本体は `(device, endpoint)` キーで不変なので、名前をいくら変えても
+  **時系列そのものは途切れない**。上記はすべて「表示上の連続性」の話である
+
+### 4.3 複数口機器の表示挙動
+
+メトリクスは口ごとに独立した系列を持つため、**口ごとに名前を付ければ
+（2.1節の `endpoints:`）、独立したプラグと同様に口ごとに1行ずつ生成される**。
+
+- 変数には「テレビ」「録画機」…が別々に列挙され、各口が自分の行を持つ
+- Total Power は `topology!="NODE"` により口別値のみを合計（機器が「全体合計」
+  エンドポイントを持っていても二重計上しない）
+- Availability は Matter の仕様上ノード単位のため、各口の行に同じ機器の
+  稼働状態が表示される（仕様通りの挙動）
+
+注意:
+
+- **口に名前を付けず機器名だけの場合、全口が同名にフォールバック**し、
+  1つの行に複数の線が同じ凡例名で描かれて区別できない。複数口機器では
+  口ごとの命名が実質必須
+- 機器が持つ「全体合計」エンドポイント（topology=NODE）も命名しないと
+  機器名の行に混ざる。`endpoints: {4: "タップ合計"}` のように明示的に
+  分離するのがよい
+- 複数口の挙動はメトリクス生成レベルでは合成フィクスチャ（power_strip.json）で
+  回帰テスト済みだが、**実機の複数口機器が無いため Grafana 上の見え方は
+  実データ未検証**。導入時に変数の列挙と行の分かれ方を確認すること
 
 ---
 
