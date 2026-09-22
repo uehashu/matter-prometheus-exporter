@@ -4,3 +4,7 @@ updates:
     directory: "/" # Dockerfile のある場所
     schedule:
       interval: "daily"
+  - package-ecosystem: "pip"
+    directory: "/" # requirements.txt / requirements-dev.txt のある場所
+    schedule:
+      interval: "weekly"
