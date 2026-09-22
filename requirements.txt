@@ -5,4 +5,4 @@ python-matter-server>=8.1,<9
 PyYAML>=6,<7
 
 # 任意: asyncioの高速化（利用可能なら自動で使う）
-uvloop>=0.19; sys_platform != "win32"
+uvloop>=0.22.1; sys_platform != "win32"
