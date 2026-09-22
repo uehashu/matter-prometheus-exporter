@@ -8,3 +8,9 @@ updates:
     directory: "/" # requirements.txt / requirements-dev.txt のある場所
     schedule:
       interval: "weekly"
+    # 下限値の引き上げだけのPRは出さない（範囲内の最新版はビルド時に入るため）。
+    # 上限を超える新バージョンが出たときだけ範囲を広げるPRを作る
+    versioning-strategy: increase-if-necessary
+    groups:
+      pip-dependencies:
+        patterns: ["*"]
