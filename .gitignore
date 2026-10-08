@@ -162,3 +162,6 @@ tmp/
 secrets/
 # ユーザー環境固有の名前定義（誤コミット防止）
 names.yaml
+
+# Claude Code のローカル設定（マシン固有）
+.claude/settings.local.json
